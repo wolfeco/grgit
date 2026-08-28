@@ -12,4 +12,4 @@ bin
 out
 *.sublime-*
 *.swp
-gradle.properties
+.bundle

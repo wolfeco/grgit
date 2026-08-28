@@ -16,15 +16,15 @@ class ApplyOpSpec extends SimpleGitOpSpec {
     repoFile('2.txt') << 'something else\n'
     grgit.add(patterns:['.'])
     grgit.commit(message: 'Test')
-    def patch = tempDir.newFile()
+    def patch = new File(tempDir, 'temp.patch')
     this.class.getResourceAsStream('/org/ajoberstar/grgit/operation/sample.patch').withStream { stream ->
       patch << stream
     }
     when:
     grgit.apply(patch: patch)
     then:
-    repoFile('1.txt').text == 'something'
-    repoFile('2.txt').text == 'something else\nis being added\n'
-    repoFile('3.txt').text == 'some new stuff\n'
+    repoFile('1.txt').text.normalize() == 'something'
+    repoFile('2.txt').text.normalize() == 'something else\nis being added\n'
+    repoFile('3.txt').text.normalize() == 'some new stuff\n'
   }
 }

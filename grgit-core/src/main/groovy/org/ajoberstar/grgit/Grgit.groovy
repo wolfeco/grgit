@@ -59,6 +59,7 @@ import org.ajoberstar.grgit.util.JGitUtil
  *   <li>{@link org.ajoberstar.grgit.operation.CleanOp clean}</li>
  *   <li>{@link org.ajoberstar.grgit.operation.CommitOp commit}</li>
  *   <li>{@link org.ajoberstar.grgit.operation.DescribeOp describe}</li>
+ *   <li>{@link org.ajoberstar.grgit.operation.DiffOp diff}</li>
  *   <li>{@link org.ajoberstar.grgit.operation.FetchOp fetch}</li>
  *   <li>{@link org.ajoberstar.grgit.operation.LogOp log}</li>
  *   <li>{@link org.ajoberstar.grgit.operation.LsRemoteOp lsremote}</li>
@@ -95,7 +96,7 @@ import org.ajoberstar.grgit.util.JGitUtil
  *
  * @since 0.1.0
  */
-@WithOperations(staticOperations=[InitOp, CloneOp, OpenOp], instanceOperations=[CleanOp, StatusOp, AddOp, RmOp, ResetOp, ApplyOp, PullOp, PushOp, FetchOp, LsRemoteOp, CheckoutOp, LogOp, CommitOp, RevertOp, MergeOp, DescribeOp, ShowOp])
+@WithOperations(staticOperations=[InitOp, CloneOp, OpenOp], instanceOperations=[CleanOp, StatusOp, AddOp, RmOp, ResetOp, ApplyOp, PullOp, PushOp, FetchOp, LsRemoteOp, CheckoutOp, LogOp, CommitOp, RevertOp, MergeOp, DescribeOp, ShowOp, DiffOp])
 class Grgit implements AutoCloseable {
   /**
    * The repository opened by this object.
@@ -122,7 +123,7 @@ class Grgit implements AutoCloseable {
    */
   final TagService tag
 
-  private Grgit(Repository repository) {
+  Grgit(Repository repository) {
     this.repository = repository
     this.branch = new BranchService(repository)
     this.remote = new RemoteService(repository)
@@ -156,6 +157,6 @@ class Grgit implements AutoCloseable {
    */
   @Override
   void close() {
-    repository.jgit.close()
+    repository.jgit.repository.close()
   }
 }

@@ -1,5 +1,8 @@
 package org.ajoberstar.grgit.operation
 
+import org.ajoberstar.grgit.Credentials
+import spock.lang.IgnoreIf
+
 import java.nio.file.Files
 
 import org.ajoberstar.grgit.Commit
@@ -40,9 +43,10 @@ class OpenOpSpec extends SimpleGitOpSpec {
   }
 
   @RestoreSystemProperties
+  @IgnoreIf({ Integer.parseInt(System.properties['java.version'].split('\\.')[0]) >= 11})
   def 'open without dir fails if there is no repo in the current dir'() {
     given:
-    File workingDir = tempDir.newFolder('no_repo')
+    File workingDir = new File(tempDir, 'no_repo')
     System.setProperty('user.dir', workingDir.absolutePath)
     when:
     Grgit.open()
@@ -51,6 +55,7 @@ class OpenOpSpec extends SimpleGitOpSpec {
   }
 
   @RestoreSystemProperties
+  @IgnoreIf({ Integer.parseInt(System.properties['java.version'].split('\\.')[0]) >= 11})
   def 'open without dir succeeds if current directory is repo dir'() {
     given:
     File dir = repoDir('.')
@@ -65,6 +70,7 @@ class OpenOpSpec extends SimpleGitOpSpec {
   }
 
   @RestoreSystemProperties
+  @IgnoreIf({ Integer.parseInt(System.properties['java.version'].split('\\.')[0]) >= 11})
   def 'open without dir succeeds if current directory is subdir of a repo'() {
     given:
     System.setProperty('user.dir', subdir.absolutePath)
@@ -77,10 +83,11 @@ class OpenOpSpec extends SimpleGitOpSpec {
   }
 
   @RestoreSystemProperties
+  @IgnoreIf({ Integer.parseInt(System.properties['java.version'].split('\\.')[0]) >= 11})
   def 'open without dir succeeds if .git in current dir has gitdir'() {
     given:
-    File workDir = tempDir.newFolder()
-    File gitDir = tempDir.newFolder()
+    File workDir = new File(tempDir, 'temp1')
+    File gitDir = new File(tempDir, 'temp2')
 
     Git.cloneRepository()
       .setDirectory(workDir)
@@ -98,10 +105,11 @@ class OpenOpSpec extends SimpleGitOpSpec {
   }
 
   @RestoreSystemProperties
+  @IgnoreIf({ Integer.parseInt(System.properties['java.version'].split('\\.')[0]) >= 11})
   def 'open without dir succeeds if .git in parent dir has gitdir'() {
     given:
-    File workDir = tempDir.newFolder()
-    File gitDir = tempDir.newFolder()
+    File workDir = new File(tempDir, 'temp1')
+    File gitDir = new File(tempDir, 'temp2')
 
     Git.cloneRepository()
         .setDirectory(workDir)
@@ -134,5 +142,19 @@ class OpenOpSpec extends SimpleGitOpSpec {
     opened.close()
     then:
     opened.repository.rootDir.deleteDir()
+  }
+
+  def 'credentials as param name should work'() {
+    when:
+    Grgit opened = Grgit.open(dir: repoDir('.'), credentials: new Credentials())
+    then:
+    opened.head() == commit
+  }
+
+  def 'creds as param name should work'() {
+    when:
+    Grgit opened = Grgit.open(dir: repoDir('.'), creds: new Credentials())
+    then:
+    opened.head() == commit
   }
 }

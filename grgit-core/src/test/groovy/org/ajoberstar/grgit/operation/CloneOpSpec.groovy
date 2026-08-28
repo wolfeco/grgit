@@ -17,7 +17,7 @@ class CloneOpSpec extends MultiGitOpSpec {
 
   def setup() {
     // TODO: Convert branching and tagging to Grgit.
-    repoDir = tempDir.newFolder('local')
+    repoDir = new File(tempDir, 'local')
 
     remoteGrgit = init('remote')
     remoteUri = remoteGrgit.repository.rootDir.toURI()
@@ -115,6 +115,43 @@ class CloneOpSpec extends MultiGitOpSpec {
     GitTestUtil.branches(grgit).findAll(localBranchesFilter).collect(lastName) == ['branch2']
     GitTestUtil.tags(grgit).collect(lastName) == ['tag1']
     GitTestUtil.remotes(grgit) == ['origin']
+  }
+
+  def 'clone with all true works'() {
+    when:
+    def grgit = Grgit.clone(dir: repoDir, uri: remoteUri, all: true)
+    then:
+    grgit.head() == remoteGrgit.resolve.toCommit('master')
+    GitTestUtil.branches(grgit).findAll(remoteBranchesFilter).collect(lastName) == GitTestUtil.branches(remoteGrgit).collect(lastName)
+    GitTestUtil.branches(grgit).findAll(localBranchesFilter).collect(lastName) == ['master']
+  }
+
+  def 'clone with all false has the same effect as all true'() {
+    when:
+    def grgit = Grgit.clone(dir: repoDir, uri: remoteUri, all: false)
+    then:
+    grgit.head() == remoteGrgit.resolve.toCommit('master')
+    GitTestUtil.branches(grgit).findAll(remoteBranchesFilter).collect(lastName) == GitTestUtil.branches(remoteGrgit).collect(lastName)
+    GitTestUtil.branches(grgit).findAll(localBranchesFilter).collect(lastName) == ['master']
+  }
+
+  def 'clone with all false and explicitly set branches works'() {
+    when:
+    def branches = ['refs/heads/master', 'refs/heads/branch1']
+    def grgit = Grgit.clone(dir: repoDir, uri: remoteUri, all: false, branches: branches)
+    then:
+    grgit.head() == remoteGrgit.resolve.toCommit('master')
+    GitTestUtil.branches(grgit).findAll(remoteBranchesFilter).collect(lastName).sort() == ['master', 'branch1'].sort()
+    GitTestUtil.branches(grgit).findAll(localBranchesFilter).collect(lastName) == ['master']
+  }
+
+  def 'clone with all false and 1 depth'() {
+    when:
+    def grgit = Grgit.clone(dir: repoDir, uri: remoteUri, all: false, depth: 1)
+    then:
+    grgit.head().id == remoteGrgit.resolve.toCommit('master').id
+    grgit.head().parentIds.isEmpty()
+    GitTestUtil.branches(grgit).findAll(localBranchesFilter).collect(lastName) == ['master']
   }
 
   def 'cloned repo can be deleted'() {

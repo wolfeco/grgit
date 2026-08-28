@@ -1,7 +1,0 @@
-rootProject.name = 'grgit'
-
-include 'grgit-core'
-include 'grgit-gradle'
-
-enableFeaturePreview('STABLE_PUBLISHING')
-enableFeaturePreview('IMPROVED_POM_SUPPORT')

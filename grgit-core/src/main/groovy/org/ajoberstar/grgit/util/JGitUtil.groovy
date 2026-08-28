@@ -40,8 +40,12 @@ class JGitUtil {
    * @return the resolved object
    */
   static ObjectId resolveObject(Repository repo, String revstr) {
-    ObjectId object = repo.jgit.repository.resolve(revstr)
-    return object
+    if (revstr) {
+      ObjectId object = repo.jgit.repository.resolve(revstr)
+      return object
+    } else {
+      return null
+    }
   }
 
   /**
@@ -53,9 +57,13 @@ class JGitUtil {
    */
   static RevObject resolveRevObject(Repository repo, String revstr, boolean peel = false) {
     ObjectId id = resolveObject(repo, revstr)
-    RevWalk walk = new RevWalk(repo.jgit.repository)
-    RevObject rev = walk.parseAny(id)
-    return peel ? walk.peel(rev) : rev
+    if (id) {
+      RevWalk walk = new RevWalk(repo.jgit.repository)
+      RevObject rev = walk.parseAny(id)
+      return peel ? walk.peel(rev) : rev
+    } else {
+      return null
+    }
   }
 
   /**
@@ -79,8 +87,12 @@ class JGitUtil {
    * @return the resolved commit
    */
   static Commit resolveCommit(Repository repo, String revstr) {
-    ObjectId id = resolveObject(repo, revstr)
-    return resolveCommit(repo, id)
+    if (revstr) {
+      ObjectId id = resolveObject(repo, revstr)
+      return resolveCommit(repo, id)
+    } else {
+      return null
+    }
   }
 
   /**
@@ -90,8 +102,12 @@ class JGitUtil {
    * @return the resolved commit
    */
   static Commit resolveCommit(Repository repo, ObjectId id) {
-    RevWalk walk = new RevWalk(repo.jgit.repository)
-    return convertCommit(repo, walk.parseCommit(id))
+    if (id) {
+      RevWalk walk = new RevWalk(repo.jgit.repository)
+      return convertCommit(repo, walk.parseCommit(id))
+    } else {
+      return null
+    }
   }
 
   /**
@@ -102,7 +118,12 @@ class JGitUtil {
   static Commit convertCommit(Repository repo, RevCommit rev) {
     Map props = [:]
     props.id = ObjectId.toString(rev)
-    props.abbreviatedId = repo.jgit.repository.newObjectReader().abbreviate(rev).name()
+    def reader = repo.jgit.repository.newObjectReader()
+    try {
+      props.abbreviatedId = reader.abbreviate(rev).name()
+    } finally {
+      reader.close()
+    }
     PersonIdent committer = rev.committerIdent
     props.committer = new Person(committer.name, committer.emailAddress)
     PersonIdent author = rev.authorIdent
@@ -127,7 +148,7 @@ class JGitUtil {
    * @return the resolved tag
    */
   static Tag resolveTag(Repository repo, String name) {
-    Ref ref = repo.jgit.repository.getRef(name)
+    Ref ref = repo.jgit.repository.findRef(name)
     return resolveTag(repo, ref)
   }
 
@@ -138,6 +159,9 @@ class JGitUtil {
    * @return the resolved tag
    */
   static Tag resolveTag(Repository repo, Ref ref) {
+    if (ref == null) {
+      return null
+    }
     Map props = [:]
     props.fullName = ref.name
     try {
